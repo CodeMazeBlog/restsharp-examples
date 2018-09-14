@@ -1,0 +1,5 @@
+/.vs
+/RestSharpExamples/obj
+/RestSharpExamples/bin
+/UnitTests/obj
+/UnitTests/bin
