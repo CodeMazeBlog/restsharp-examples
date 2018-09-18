@@ -1,16 +1,14 @@
-﻿using RestSharpExamples.Model;
+﻿using RestSharp;
+using RestSharpExamples.Model;
 using System.Collections.Generic;
-using System.Net.Http;
-using System.Threading.Tasks;
-using RestSharp;
 
 namespace RestSharpExamples
 {
     public interface IRequestHandler
     {
-        IRestResponse GetRepositories();
-        Task<Repository> CreateRepository(string user, string repository);
-        Task<Repository> EditRepository(string user, string repository);
-        Task<HttpResponseMessage> DeleteRepository(string user, string repository);
+        IRestResponse<List<Repository>> GetRepositories();
+        IRestResponse<Repository> CreateRepository(string user, string repository);
+        IRestResponse<Repository> EditRepository(string user, string repository);
+        IRestResponse<Repository> DeleteRepository(string user, string repository);
     }
 }

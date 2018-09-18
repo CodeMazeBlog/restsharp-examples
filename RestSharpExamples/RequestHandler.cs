@@ -1,59 +1,96 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Net.Http;
-using System.Text;
-using System.Threading.Tasks;
-using RestSharp;
+﻿using RestSharp;
 using RestSharp.Authenticators;
 using RestSharpExamples.Constants;
 using RestSharpExamples.Model;
+using System;
+using System.Collections.Generic;
+using Newtonsoft.Json;
 
 namespace RestSharpExamples
 {
     public class RequestHandler : IRequestHandler
     {
-        private static string _githubUsername;
-        private static string _githubPassword;
-        private static string _githubToken;
+        private static IRestClient _restClient;
 
         public RequestHandler()
         {
             //keeping sensitive information in environment variables
             //never, ever leave secret information in the code or it might end up in some public repo
-            _githubUsername = Environment.GetEnvironmentVariable("GITHUB_USERNAME");
-            _githubPassword = Environment.GetEnvironmentVariable("GITHUB_PASS");
-            _githubToken = Environment.GetEnvironmentVariable("GITHUB_TOKEN");
-        }
+            var githubUsername = Environment.GetEnvironmentVariable("GITHUB_USERNAME");
+            var githubPassword = Environment.GetEnvironmentVariable("GITHUB_PASS");
+            var githubToken = Environment.GetEnvironmentVariable("GITHUB_TOKEN");
 
-        public IRestResponse GetRepositories()
-        {
-            var client = new RestClient
+            _restClient = new RestClient
             {
                 BaseUrl = new Uri(RequestConstants.BaseUrl),
-                Authenticator =   new HttpBasicAuthenticator(_githubUsername, _githubPassword)
+                Authenticator = new HttpBasicAuthenticator(githubUsername, githubPassword)
             };
+        }
 
+        public RequestHandler(IRestClient restClient)
+        {
+            _restClient = restClient;
+        }
+
+        public IRestResponse<List<Repository>> GetRepositories()
+        {
             var request = new RestRequest { Resource = "user/repos" };
             request.AddHeader(RequestConstants.UserAgent, RequestConstants.UserAgentValue);
 
-            IRestResponse response = client.Execute<List<Repository>>(request);
+            var response = _restClient.Execute<List<Repository>>(request);
 
             return response;
         }
 
-        public Task<Repository> CreateRepository(string user, string repository)
+        public IRestResponse<Repository> CreateRepository(string user, string repository)
         {
-            throw new NotImplementedException();
+            var repo = new Repository
+            {
+                Name = repository,
+                FullName = $"{user}/{repository}",
+                Description = "Generic description",
+                Private = false
+            };
+
+            var request = new RestRequest { Resource = "user/repos" };
+            request.AddHeader(RequestConstants.UserAgent, RequestConstants.UserAgentValue);
+            request.AddParameter("application/json; charset=utf-8", JsonConvert.SerializeObject(repo), ParameterType.RequestBody);
+            request.Method = Method.POST;
+
+            var response = _restClient.Execute<Repository>(request);
+
+            return response;
         }
 
-        public Task<Repository> EditRepository(string user, string repository)
+        public IRestResponse<Repository> EditRepository(string user, string repository)
         {
-            throw new NotImplementedException();
+            var repo = new Repository
+            {
+                Name = repository,
+                FullName = $"{user}/{repository}",
+                Description = "Modified repository",
+                Private = false
+            };
+
+            var request = new RestRequest { Resource = $"repos/{user}/{repository}" };
+            request.AddHeader(RequestConstants.UserAgent, RequestConstants.UserAgentValue);
+            request.AddParameter("application/json; charset=utf-8", JsonConvert.SerializeObject(repo), ParameterType.RequestBody);
+            request.Method = Method.PATCH;
+
+            var response = _restClient.Execute<Repository>(request);
+
+            return response;
         }
 
-        public Task<HttpResponseMessage> DeleteRepository(string user, string repository)
+        public IRestResponse<Repository> DeleteRepository(string user, string repository)
         {
-            throw new NotImplementedException();
+            var request = new RestRequest { Resource = $"repos/{user}/{repository}" };
+            request.AddHeader(RequestConstants.UserAgent, RequestConstants.UserAgentValue);
+            request.Method = Method.DELETE;
+
+            var response = _restClient.Execute<Repository>(request);
+
+            return response;
         }
     }
 }
