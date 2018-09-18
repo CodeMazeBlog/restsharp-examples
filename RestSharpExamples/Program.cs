@@ -1,7 +1,5 @@
 ﻿using RestSharpExamples.Model;
 using System;
-using System.Collections.Generic;
-using RestSharp;
 
 namespace RestSharpExamples
 {
